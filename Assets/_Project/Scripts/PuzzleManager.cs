@@ -126,6 +126,14 @@ public class PuzzleManager : MonoBehaviour
         }
     }
 
+    // Used by SequenceTask: a wrong move costs time (lose-condition pressure)
+    public void AddTimePenalty(float seconds)
+    {
+        if (IsGameOver) return;
+        timeLeft = Mathf.Max(0f, timeLeft - seconds);
+        UpdateTimerUI();
+    }
+
     public bool IsTaskCompleted(int index)
     {
         return index >= 0 && index < totalTasks && completed[index];
@@ -190,6 +198,6 @@ public class PuzzleManager : MonoBehaviour
         int minutes = Mathf.FloorToInt(timeLeft / 60f);
         int seconds = Mathf.FloorToInt(timeLeft % 60f);
         timerText.text = string.Format("Checkout: {0:00}:{1:00}", minutes, seconds);
-        timerText.color = timeLeft <= 60f ? Color.red : Color.white;   // warning in the last minute
+        timerText.color = timeLeft <= 60f ? Color.red : Color.white;   
     }
 }

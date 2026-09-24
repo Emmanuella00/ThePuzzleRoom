@@ -3,18 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Makes an object softly pulse with a glow, meaning "you can interact with me".
-// Call MarkSolved() to flash green and stop glowing.
+// MarkSolved() = flash green and stop glowing.  FlashRed() = short red "not yet" flash.
 public class HighlightPulse : MonoBehaviour
 {
     public Color glowColor = new Color(1f, 0.75f, 0.2f);   // warm yellow
     public float maxIntensity = 0.8f;
     public float speed = 3f;
+    [Tooltip("Untick for objects that should only start glowing later (e.g. checkout routine steps)")]
+    public bool startPulsing = true;
 
     private readonly List<Material> mats = new List<Material>();
     private bool pulsing = true;
+    private bool flashing;
 
     void Start()
     {
+        pulsing = startPulsing;
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
             mats.AddRange(r.materials);          // instances, so other objects aren't affected
         foreach (Material m in mats)
@@ -23,7 +27,7 @@ public class HighlightPulse : MonoBehaviour
 
     void Update()
     {
-        if (!pulsing) return;
+        if (!pulsing || flashing) return;
         float k = (Mathf.Sin(Time.time * speed) + 1f) * 0.5f * maxIntensity;
         SetEmission(glowColor * k);
     }
@@ -31,14 +35,30 @@ public class HighlightPulse : MonoBehaviour
     public void MarkSolved()
     {
         pulsing = false;
-        StartCoroutine(FlashGreen());
+        StopAllCoroutines();
+        StartCoroutine(Flash(Color.green * 1.5f, 1.2f, false));
     }
 
-    IEnumerator FlashGreen()
+    public void FlashRed()
     {
-        SetEmission(Color.green * 1.5f);
-        yield return new WaitForSeconds(1.2f);
-        SetEmission(Color.black);
+        StopAllCoroutines();
+        StartCoroutine(Flash(Color.red * 1.5f, 0.5f, true));
+    }
+
+    // Turn the "interact with me" glow on or off
+    public void SetPulsing(bool on)
+    {
+        pulsing = on;
+        if (!on && !flashing) SetEmission(Color.black);
+    }
+
+    IEnumerator Flash(Color c, float seconds, bool resumePulse)
+    {
+        flashing = true;
+        SetEmission(c);
+        yield return new WaitForSeconds(seconds);
+        flashing = false;
+        if (!resumePulse || !pulsing) SetEmission(Color.black);
     }
 
     void SetEmission(Color c)
