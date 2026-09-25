@@ -19,7 +19,7 @@ public class PlayerCarry : MonoBehaviour
     void Update()
     {
         PuzzleManager pm = PuzzleManager.Instance;
-        if (pm != null && pm.IsGameOver) { SetPrompt(""); return; }
+        if (pm != null && (pm.IsGameOver || !pm.IsRunning)) { SetPrompt(""); return; }
 
         Keyboard kb = Keyboard.current;
         bool ePressed = kb != null && kb.eKey.wasPressedThisFrame;
@@ -75,7 +75,7 @@ public class PlayerCarry : MonoBehaviour
         foreach (Collider h in hits)
         {
             SequenceDevice d = h.GetComponentInParent<SequenceDevice>();
-            if (d == null || d.Done || d.sequence == null || d.sequence.IsSolved) continue;
+            if (d == null || d.Done || d.sequence == null || !d.sequence.IsCurrentStep(d)) continue;
             float dist = Vector3.Distance(center, h.bounds.ClosestPoint(center));
             if (dist < bestDist) { bestDist = dist; best = d; }
         }
@@ -91,7 +91,7 @@ public class PlayerCarry : MonoBehaviour
         foreach (Collider h in hits)
         {
             RotationTask r = h.GetComponentInParent<RotationTask>();
-            if (r == null || r.IsSolved || r.isGhostCopy) continue;
+            if (r == null || r.IsSolved || r.isGhostCopy || !r.IsAvailable) continue;
             float d = Vector3.Distance(center, h.bounds.ClosestPoint(center));
             if (d < bestDist) { bestDist = d; best = r; }
         }
@@ -108,6 +108,7 @@ public class PlayerCarry : MonoBehaviour
         {
             Carryable c = h.GetComponentInParent<Carryable>();
             if (c == null || c.IsPlaced || c.IsCarried) continue;
+            if (c.correctSpot != null && !c.correctSpot.IsAvailable) continue;   // not glowing yet
             float d = Vector3.Distance(center, h.bounds.ClosestPoint(center));
             if (d < bestDist) { bestDist = d; best = c; }
         }

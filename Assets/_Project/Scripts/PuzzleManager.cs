@@ -17,6 +17,7 @@ public class PuzzleManager : MonoBehaviour
     // Events other scripts can listen to (event-based interaction)
     public event Action<int> OnTaskCompleted;   // sends the task index
     public event Action OnAllTasksCompleted;
+    public event Action OnGameEnded;            // win or lose (MenuManager shows the cursor)
 
     [Header("Puzzle")]
     [Tooltip("Number of puzzle tasks. Must match the length of the door code.")]
@@ -43,6 +44,7 @@ public class PuzzleManager : MonoBehaviour
     public AudioClip loseSound;
 
     public bool IsGameOver { get; private set; }
+    public bool IsRunning { get; private set; }  // false while the welcome panel is open
     public int CompletedCount { get; private set; }
     public bool AllTasksDone => CompletedCount >= totalTasks;
 
@@ -60,6 +62,8 @@ public class PuzzleManager : MonoBehaviour
 
     void Start()
     {
+        // If there is a MenuManager, wait for the Play button; otherwise start right away
+        IsRunning = FindFirstObjectByType<MenuManager>() == null;
         if (winPanel) winPanel.SetActive(false);
         if (losePanel) losePanel.SetActive(false);
         UpdateProgressUI();
@@ -79,6 +83,8 @@ public class PuzzleManager : MonoBehaviour
             }
             return;
         }
+
+        if (!IsRunning) return;   // welcome panel still open: timer paused
 
 #if UNITY_EDITOR
         // TESTING ONLY (works in the Editor, not in the final build):
@@ -103,6 +109,12 @@ public class PuzzleManager : MonoBehaviour
             return;
         }
         UpdateTimerUI();
+    }
+
+    // Called by MenuManager's Play button
+    public void StartGame()
+    {
+        IsRunning = true;
     }
 
     // Called by every puzzle task when it is solved
@@ -146,6 +158,7 @@ public class PuzzleManager : MonoBehaviour
         PlaySound(winSound);
         if (winPanel) winPanel.SetActive(true);
         Time.timeScale = 0f;   // freeze the game
+        OnGameEnded?.Invoke();
     }
 
     public void Lose(string reason)
@@ -156,6 +169,7 @@ public class PuzzleManager : MonoBehaviour
         if (loseReasonText) loseReasonText.text = reason;
         if (losePanel) losePanel.SetActive(true);
         Time.timeScale = 0f;
+        OnGameEnded?.Invoke();
     }
 
     public void ShowMessage(string msg, float seconds = 3f)

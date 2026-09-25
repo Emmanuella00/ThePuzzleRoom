@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 // Puzzle type: "Placing objects on correct surfaces".
@@ -17,17 +18,65 @@ public class PlacementTask : MonoBehaviour
     [Header("Optional extra clue")]
     public Light clueLight;
 
+    [Header("Order (optional)")]
+    [Tooltip("Task index that must be finished first, or -1 for none (0 = task 1)")]
+    public int requiredTaskIndex = -1;
+    [Tooltip("Plays when this task becomes available")]
+    public AudioClip unlockSound;
+
     public bool IsDone { get; private set; }
+
+    // Can the player do this task right now?
+    public bool IsAvailable =>
+        requiredTaskIndex < 0 ||
+        (PuzzleManager.Instance != null && PuzzleManager.Instance.IsTaskCompleted(requiredTaskIndex));
 
     void Start()
     {
         if (item != null) item.correctSpot = this;
         if (clueLight) clueLight.color = new Color(1f, 0.8f, 0.3f);
+
+        // Locked? Hide the ghost, the light and the item's glow until the required task is done
+        if (!IsAvailable)
+        {
+            SetClueVisible(false);
+            StartCoroutine(TurnItemGlowOffNextFrame());
+            PuzzleManager.Instance.OnTaskCompleted += HandleTaskCompleted;   // event-based
+        }
+    }
+
+    IEnumerator TurnItemGlowOffNextFrame()
+    {
+        yield return null;   // wait until HighlightPulse has started
+        HighlightPulse glow = item ? item.GetComponent<HighlightPulse>() : null;
+        if (!IsAvailable && glow) glow.SetPulsing(false);
+    }
+
+    void HandleTaskCompleted(int index)
+    {
+        if (index != requiredTaskIndex || IsDone) return;
+        // Unlocked: the item starts glowing and its ghost appears
+        SetClueVisible(true);
+        HighlightPulse glow = item ? item.GetComponent<HighlightPulse>() : null;
+        if (glow) glow.SetPulsing(true);
+        PuzzleManager.Instance.PlaySound(unlockSound);
+        PuzzleManager.Instance.OnTaskCompleted -= HandleTaskCompleted;
+    }
+
+    void OnDestroy()
+    {
+        if (PuzzleManager.Instance != null) PuzzleManager.Instance.OnTaskCompleted -= HandleTaskCompleted;
+    }
+
+    void SetClueVisible(bool on)
+    {
+        foreach (Renderer r in GetComponentsInChildren<Renderer>()) r.enabled = on;
+        if (clueLight) clueLight.enabled = on;
     }
 
     public bool TryPlace(Carryable c)
     {
-        if (IsDone || c != item) return false;
+        if (IsDone || c != item || !IsAvailable) return false;
 
         Vector3 a = c.transform.position;
         Vector3 b = transform.position;

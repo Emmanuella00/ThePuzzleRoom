@@ -34,10 +34,16 @@ public class RotationTask : MonoBehaviour
     [Tooltip("Something to switch ON when solved, e.g. a light for the TV screen")]
     public GameObject activateOnSolve;
     public AudioClip turnSound;
-    public AudioClip lockedSound;
+    [Tooltip("Plays when this object becomes available (e.g. TV wakes up)")]
+    public AudioClip unlockSound;
 
     public bool IsSolved { get; private set; }
     public bool IsTurning { get; private set; }
+
+    // Can the player use it right now? (false while the required task isn't done)
+    public bool IsAvailable =>
+        requiredTaskIndex < 0 ||
+        (PuzzleManager.Instance != null && PuzzleManager.Instance.IsTaskCompleted(requiredTaskIndex));
 
     private Vector3 pivot;
     private Vector3 correctPos;
@@ -65,6 +71,35 @@ public class RotationTask : MonoBehaviour
         transform.RotateAround(pivot, rotationAxis, -stepsOff * stepAngle);
 
         if (activateOnSolve) activateOnSolve.SetActive(false);
+
+        // Locked? Then hide the ghost and the glow until the required task is done
+        if (!IsAvailable)
+        {
+            if (ghost) ghost.SetActive(false);
+            StartCoroutine(TurnGlowOffNextFrame());
+            PuzzleManager.Instance.OnTaskCompleted += HandleTaskCompleted;   // event-based
+        }
+    }
+
+    IEnumerator TurnGlowOffNextFrame()
+    {
+        yield return null;                 // wait until HighlightPulse has started
+        if (!IsAvailable && glow) glow.SetPulsing(false);
+    }
+
+    void HandleTaskCompleted(int index)
+    {
+        if (index != requiredTaskIndex || IsSolved) return;
+        // Unlocked! The object "wakes up": glow + ghost appear
+        if (ghost) ghost.SetActive(true);
+        if (glow) glow.SetPulsing(true);
+        PuzzleManager.Instance.PlaySound(unlockSound);
+        PuzzleManager.Instance.OnTaskCompleted -= HandleTaskCompleted;
+    }
+
+    void OnDestroy()
+    {
+        if (PuzzleManager.Instance != null) PuzzleManager.Instance.OnTaskCompleted -= HandleTaskCompleted;
     }
 
     // Called by PlayerCarry when the player presses E nearby
@@ -73,13 +108,7 @@ public class RotationTask : MonoBehaviour
         if (IsSolved || IsTurning) return;
         PuzzleManager pm = PuzzleManager.Instance;
 
-        // Locked until another task is done -> red flash + buzz
-        if (requiredTaskIndex >= 0 && !pm.IsTaskCompleted(requiredTaskIndex))
-        {
-            if (glow) glow.FlashRed();
-            pm.PlaySound(lockedSound);
-            return;
-        }
+        if (!IsAvailable) return;   // not glowing = not usable yet
 
         pm.PlaySound(turnSound);
         StartCoroutine(TurnOneStep());

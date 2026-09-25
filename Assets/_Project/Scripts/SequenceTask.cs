@@ -5,7 +5,7 @@ using UnityEngine;
 // Task 5 - the checkout routine. Put this on an empty object ("CheckoutRoutine").
 // After tasks 1-4 are done, ONLY the next step glows (that's the clue).
 // Press E on the glowing object -> it does its action -> the next one starts glowing.
-// Pressing E on an object that isn't the next step = red "not yet" flash.
+// Objects that are not the current step don't glow and can't be used.
 public class SequenceTask : MonoBehaviour
 {
     [Header("Task")]
@@ -18,11 +18,12 @@ public class SequenceTask : MonoBehaviour
     [Tooltip("Tasks that must be finished first (0 = task 1)")]
     public int[] requiredTasks = { 0, 1, 2, 3 };
 
-    [Header("Sounds (optional)")]
-    public AudioClip notYetSound;
-
     public bool IsActive { get; private set; }
     public bool IsSolved { get; private set; }
+
+    // Only the glowing step can be used
+    public bool IsCurrentStep(SequenceDevice d) =>
+        IsActive && !IsSolved && current < stepsInOrder.Length && stepsInOrder[current] == d;
 
     private int current;          // index of the step that is glowing now
     private PuzzleManager pm;
@@ -62,13 +63,7 @@ public class SequenceTask : MonoBehaviour
     {
         if (IsSolved || device.Done) return;
 
-        // Not unlocked yet, or not the glowing step -> red "not yet"
-        if (!IsActive || device != stepsInOrder[current])
-        {
-            device.FlashRed();
-            pm.PlaySound(notYetSound);
-            return;
-        }
+        if (!IsCurrentStep(device)) return;   // not glowing = not usable yet
 
         // Correct step
         device.Activate();
