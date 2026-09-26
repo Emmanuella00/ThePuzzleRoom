@@ -119,7 +119,7 @@ public class DoorKeypad : MonoBehaviour
         typed = "";
         pm.PlaySound(wrongSound);
         if (attemptsLeft <= 0)
-            pm.Lose("Too many wrong codes. The door is locked for good!");
+            pm.Lose("Too many wrong codes. The door is locked!");
         else
             ShowKeypad();
     }
