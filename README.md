@@ -32,7 +32,7 @@ Tasks must be completed in order. Each finished task makes the next object glow.
 * Progress is always shown on screen: `Puzzle Progress: x / 5`
 
 ## Asset Sources
-* **Environment:** [Hotel Room Collection – Unity Asset Store](https://assetstore.unity.com/packages/3d/props/interior/hotel-room-collection-214335)
+* **Environment Assets:** [Hotel Room Collection – Unity Asset Store](https://assetstore.unity.com/packages/3d/props/interior/hotel-room-collection-214335)
 * **Player Character:** [Starter Assets – Character Controllers – Unity Asset Store](https://assetstore.unity.com/packages/3d/characters/first-person-third-person-character-controllers-196526)
 * **Music:** [Lounge Quartet Coffee Shop – Pixabay](https://pixabay.com/music/electronic-lounge-quartet-coffee-shop-560049/)
 * **TextMeshPro:** Unity Package Manager (UI text)
