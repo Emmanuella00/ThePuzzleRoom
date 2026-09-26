@@ -5,34 +5,29 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-// The "brain" of the puzzle room.
-// - Tracks which of the 5 tasks are completed (progress 0/5 ... 5/5)
-// - Reveals one digit of the door code per completed task
-// - Runs the checkout timer (lose condition)
-// - Shows the Win / Lose screens and lets the player restart with R
+
 public class PuzzleManager : MonoBehaviour
 {
     public static PuzzleManager Instance { get; private set; }
 
-    // Events other scripts can listen to (event-based interaction)
-    public event Action<int> OnTaskCompleted;   // sends the task index
+    public event Action<int> OnTaskCompleted;   
     public event Action OnAllTasksCompleted;
-    public event Action OnGameEnded;            // win or lose (MenuManager shows the cursor)
+    public event Action OnGameEnded;            
 
     [Header("Puzzle")]
     [Tooltip("Number of puzzle tasks. Must match the length of the door code.")]
     public int totalTasks = 5;
     [Tooltip("The 5-digit door code. Task 1 reveals digit 1, task 2 reveals digit 2, etc.")]
-    public string doorCode = "58213";
+    public string doorCode = "26255";
 
     [Header("Lose condition: checkout timer")]
     public float timeLimitSeconds = 300f;   // 5 minutes
 
     [Header("UI (TextMeshPro)")]
-    public TextMeshProUGUI progressText;    // "Puzzle Progress: 2 / 5"
-    public TextMeshProUGUI timerText;       // "Checkout: 03:41"
-    public TextMeshProUGUI codeText;        // "Code: 5 _ 2 _ _"
-    public TextMeshProUGUI messageText;     // short feedback messages
+    public TextMeshProUGUI progressText;    
+    public TextMeshProUGUI timerText;       
+    public TextMeshProUGUI codeText;        
+    public TextMeshProUGUI messageText;     
     public GameObject winPanel;
     public GameObject losePanel;
     public TextMeshProUGUI loseReasonText;
@@ -44,7 +39,7 @@ public class PuzzleManager : MonoBehaviour
     public AudioClip loseSound;
 
     public bool IsGameOver { get; private set; }
-    public bool IsRunning { get; private set; }  // false while the welcome panel is open
+    public bool IsRunning { get; private set; }  
     public int CompletedCount { get; private set; }
     public bool AllTasksDone => CompletedCount >= totalTasks;
 
@@ -62,7 +57,7 @@ public class PuzzleManager : MonoBehaviour
 
     void Start()
     {
-        // If there is a MenuManager, wait for the Play button; otherwise start right away
+        
         IsRunning = FindFirstObjectByType<MenuManager>() == null;
         if (winPanel) winPanel.SetActive(false);
         if (losePanel) losePanel.SetActive(false);
@@ -75,7 +70,7 @@ public class PuzzleManager : MonoBehaviour
     {
         if (IsGameOver)
         {
-            // Restart with R after winning or losing
+            
             if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
             {
                 Time.timeScale = 1f;
@@ -84,11 +79,10 @@ public class PuzzleManager : MonoBehaviour
             return;
         }
 
-        if (!IsRunning) return;   // welcome panel still open: timer paused
+        if (!IsRunning) return;   
 
 #if UNITY_EDITOR
-        // TESTING ONLY (works in the Editor, not in the final build):
-        // F1-F5 instantly complete tasks 1-5 so you can test the door.
+        
         Keyboard kbd = Keyboard.current;
         if (kbd != null)
         {
@@ -111,18 +105,18 @@ public class PuzzleManager : MonoBehaviour
         UpdateTimerUI();
     }
 
-    // Called by MenuManager's Play button
+    
     public void StartGame()
     {
         IsRunning = true;
     }
 
-    // Called by every puzzle task when it is solved
+    
     public void CompleteTask(int index)
     {
         if (IsGameOver) return;
         if (index < 0 || index >= totalTasks) return;
-        if (completed[index]) return;   // already solved, don't count twice
+        if (completed[index]) return;   
 
         completed[index] = true;
         CompletedCount++;
@@ -138,7 +132,7 @@ public class PuzzleManager : MonoBehaviour
         }
     }
 
-    // Used by SequenceTask: a wrong move costs time (lose-condition pressure)
+    
     public void AddTimePenalty(float seconds)
     {
         if (IsGameOver) return;
@@ -157,7 +151,7 @@ public class PuzzleManager : MonoBehaviour
         IsGameOver = true;
         PlaySound(winSound);
         if (winPanel) winPanel.SetActive(true);
-        Time.timeScale = 0f;   // freeze the game
+        Time.timeScale = 0f;   
         OnGameEnded?.Invoke();
     }
 

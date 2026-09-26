@@ -1,9 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-// Puzzle type: "Placing objects on correct surfaces".
-// Put this on the GHOST (a see-through copy of the object, standing where it belongs).
-// When the player puts the real object down near the ghost, it snaps into place.
+
 public class PlacementTask : MonoBehaviour
 {
     [Header("Task")]
@@ -26,7 +24,6 @@ public class PlacementTask : MonoBehaviour
 
     public bool IsDone { get; private set; }
 
-    // Can the player do this task right now?
     public bool IsAvailable =>
         requiredTaskIndex < 0 ||
         (PuzzleManager.Instance != null && PuzzleManager.Instance.IsTaskCompleted(requiredTaskIndex));
@@ -36,18 +33,17 @@ public class PlacementTask : MonoBehaviour
         if (item != null) item.correctSpot = this;
         if (clueLight) clueLight.color = new Color(1f, 0.8f, 0.3f);
 
-        // Locked? Hide the ghost, the light and the item's glow until the required task is done
         if (!IsAvailable)
         {
             SetClueVisible(false);
             StartCoroutine(TurnItemGlowOffNextFrame());
-            PuzzleManager.Instance.OnTaskCompleted += HandleTaskCompleted;   // event-based
+            PuzzleManager.Instance.OnTaskCompleted += HandleTaskCompleted;  
         }
     }
 
     IEnumerator TurnItemGlowOffNextFrame()
     {
-        yield return null;   // wait until HighlightPulse has started
+        yield return null;   
         HighlightPulse glow = item ? item.GetComponent<HighlightPulse>() : null;
         if (!IsAvailable && glow) glow.SetPulsing(false);
     }
@@ -55,7 +51,7 @@ public class PlacementTask : MonoBehaviour
     void HandleTaskCompleted(int index)
     {
         if (index != requiredTaskIndex || IsDone) return;
-        // Unlocked: the item starts glowing and its ghost appears
+        
         SetClueVisible(true);
         HighlightPulse glow = item ? item.GetComponent<HighlightPulse>() : null;
         if (glow) glow.SetPulsing(true);
@@ -83,15 +79,13 @@ public class PlacementTask : MonoBehaviour
         a.y = 0f; b.y = 0f;
         if (Vector3.Distance(a, b) > snapRange) return false;
 
-        // Snap the real object exactly onto the ghost
+        
         c.transform.SetPositionAndRotation(transform.position, transform.rotation);
         IsDone = true;
 
-        // Hide the ghost
         foreach (Renderer r in GetComponentsInChildren<Renderer>()) r.enabled = false;
         if (clueLight) clueLight.color = Color.green;
 
-        // Green flash on the real object, then stop glowing
         HighlightPulse glow = c.GetComponent<HighlightPulse>();
         if (glow) glow.MarkSolved();
 

@@ -2,11 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Makes an object softly pulse with a glow, meaning "you can interact with me".
-// MarkSolved() = flash green and stop glowing.  FlashRed() = short red "not yet" flash.
 public class HighlightPulse : MonoBehaviour
 {
-    public Color glowColor = new Color(1f, 0.75f, 0.2f);   // warm yellow
+    public Color glowColor = new Color(1f, 0.75f, 0.2f);   
     public float maxIntensity = 0.8f;
     public float speed = 3f;
     [Tooltip("Untick for objects that should only start glowing later (e.g. checkout routine steps)")]
@@ -20,7 +18,7 @@ public class HighlightPulse : MonoBehaviour
     {
         pulsing = startPulsing;
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
-            mats.AddRange(r.materials);          // instances, so other objects aren't affected
+            mats.AddRange(r.materials);          
         foreach (Material m in mats)
             m.EnableKeyword("_EMISSION");
     }
@@ -45,7 +43,7 @@ public class HighlightPulse : MonoBehaviour
         StartCoroutine(Flash(Color.red * 1.5f, 0.5f, true));
     }
 
-    // Turn the "interact with me" glow on or off
+    
     public void SetPulsing(bool on)
     {
         pulsing = on;

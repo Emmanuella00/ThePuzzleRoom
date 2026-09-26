@@ -1,13 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-// Puzzle type: "Rotating objects to align symbols".
-// Put this on the REAL object (e.g. the Painting or the TV).
-// At Start it automatically:
-//   1) creates a see-through GHOST copy in the correct position (the clue),
-//   2) turns the real object out of alignment.
-// Each press of E (handled by PlayerCarry) turns it by one step.
-// When it lines up with the ghost again, the task is completed.
+
 public class RotationTask : MonoBehaviour
 {
     [Header("Task")]
@@ -21,10 +15,10 @@ public class RotationTask : MonoBehaviour
     public float stepAngle = 45f;
     [Tooltip("How many steps out of place the object starts")]
     public int startStepsOff = 3;
-    public float turnSpeed = 360f;   // degrees per second (animation)
+    public float turnSpeed = 360f;   
 
     [Header("Ghost clue")]
-    public Material ghostMaterial;   // use GhostMat
+    public Material ghostMaterial;  
 
     [Header("Interconnection (optional)")]
     [Tooltip("Task index that must be finished first, or -1 for none")]
@@ -40,7 +34,7 @@ public class RotationTask : MonoBehaviour
     public bool IsSolved { get; private set; }
     public bool IsTurning { get; private set; }
 
-    // Can the player use it right now? (false while the required task isn't done)
+    
     public bool IsAvailable =>
         requiredTaskIndex < 0 ||
         (PuzzleManager.Instance != null && PuzzleManager.Instance.IsTaskCompleted(requiredTaskIndex));
@@ -48,7 +42,7 @@ public class RotationTask : MonoBehaviour
     private Vector3 pivot;
     private Vector3 correctPos;
     private Quaternion correctRot;
-    private int stepsOff;              // how many steps away from correct
+    private int stepsOff;              
     private int stepsPerCircle;
     private GameObject ghost;
     private HighlightPulse glow;
@@ -66,31 +60,30 @@ public class RotationTask : MonoBehaviour
 
         CreateGhost();
 
-        // Knock the real object out of place
+        
         stepsOff = ((startStepsOff % stepsPerCircle) + stepsPerCircle) % stepsPerCircle;
         transform.RotateAround(pivot, rotationAxis, -stepsOff * stepAngle);
 
         if (activateOnSolve) activateOnSolve.SetActive(false);
 
-        // Locked? Then hide the ghost and the glow until the required task is done
+        
         if (!IsAvailable)
         {
             if (ghost) ghost.SetActive(false);
             StartCoroutine(TurnGlowOffNextFrame());
-            PuzzleManager.Instance.OnTaskCompleted += HandleTaskCompleted;   // event-based
+            PuzzleManager.Instance.OnTaskCompleted += HandleTaskCompleted;   
         }
     }
 
     IEnumerator TurnGlowOffNextFrame()
     {
-        yield return null;                 // wait until HighlightPulse has started
+        yield return null;                
         if (!IsAvailable && glow) glow.SetPulsing(false);
     }
 
     void HandleTaskCompleted(int index)
     {
         if (index != requiredTaskIndex || IsSolved) return;
-        // Unlocked! The object "wakes up": glow + ghost appear
         if (ghost) ghost.SetActive(true);
         if (glow) glow.SetPulsing(true);
         PuzzleManager.Instance.PlaySound(unlockSound);
@@ -102,13 +95,12 @@ public class RotationTask : MonoBehaviour
         if (PuzzleManager.Instance != null) PuzzleManager.Instance.OnTaskCompleted -= HandleTaskCompleted;
     }
 
-    // Called by PlayerCarry when the player presses E nearby
     public void TryRotate()
     {
         if (IsSolved || IsTurning) return;
         PuzzleManager pm = PuzzleManager.Instance;
 
-        if (!IsAvailable) return;   // not glowing = not usable yet
+        if (!IsAvailable) return;   
 
         pm.PlaySound(turnSound);
         StartCoroutine(TurnOneStep());
@@ -134,7 +126,7 @@ public class RotationTask : MonoBehaviour
     void Solve()
     {
         IsSolved = true;
-        transform.SetPositionAndRotation(correctPos, correctRot);   // exact alignment
+        transform.SetPositionAndRotation(correctPos, correctRot);   
         if (ghost) ghost.SetActive(false);
         if (glow) glow.MarkSolved();
         if (activateOnSolve) activateOnSolve.SetActive(true);
@@ -148,7 +140,7 @@ public class RotationTask : MonoBehaviour
         ghost = Instantiate(gameObject, correctPos, correctRot, transform.parent);
         ghost.name = name + "_Ghost";
 
-        // Strip everything that makes it interactive
+        
         RotationTask rt = ghost.GetComponent<RotationTask>();
         rt.isGhostCopy = true;
         rt.enabled = false;
@@ -157,7 +149,7 @@ public class RotationTask : MonoBehaviour
         foreach (Collider c in ghost.GetComponentsInChildren<Collider>()) Destroy(c);
         foreach (Light l in ghost.GetComponentsInChildren<Light>()) Destroy(l.gameObject);
 
-        // Make it see-through
+        
         if (ghostMaterial)
         {
             foreach (Renderer r in ghost.GetComponentsInChildren<Renderer>())

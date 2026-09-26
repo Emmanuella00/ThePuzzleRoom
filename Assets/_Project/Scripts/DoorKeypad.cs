@@ -1,9 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Put this on a trigger zone in front of the door.
-// When all tasks are done, the player types the 5-digit code and presses Enter.
-// 3 wrong attempts = Game Over (lose condition).
+
 public class DoorKeypad : MonoBehaviour
 {
     [Tooltip("Empty object at the door's hinge edge. The Door is a child of it.")]
@@ -13,7 +11,7 @@ public class DoorKeypad : MonoBehaviour
     public int maxAttempts = 3;
 
     [Header("Feedback (optional)")]
-    public Light statusLight;       // red = locked, green = unlocked
+    public Light statusLight;       
     public AudioClip wrongSound;
     public AudioClip unlockSound;
 
@@ -96,7 +94,7 @@ public class DoorKeypad : MonoBehaviour
         PuzzleManager pm = PuzzleManager.Instance;
         if (!pm.AllTasksDone)
         {
-            pm.ShowMessage("The lock won't respond yet.", 0f);   // stays until you walk away
+            pm.ShowMessage("The lock won't respond yet.", 0f);   
             return;
         }
         pm.ShowMessage("[ " + typed.PadRight(pm.doorCode.Length, '_') + " ]   Enter = confirm   (" +

@@ -2,10 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 
-// Put this on PlayerArmature.
-// Press E near a Carryable object to pick it up, press E again to put it down.
-// Press E near a RotationTask object (painting, TV) to turn it one step.
-// Press E near a SequenceDevice (Task 5) to switch it off.
+
 public class PlayerCarry : MonoBehaviour
 {
     public float pickupRange = 1.5f;
@@ -26,7 +23,6 @@ public class PlayerCarry : MonoBehaviour
 
         if (carried == null)
         {
-            // Something to pick up?
             Carryable nearest = FindNearest();
             if (nearest != null)
             {
@@ -35,7 +31,6 @@ public class PlayerCarry : MonoBehaviour
                 return;
             }
 
-            // Something to rotate?
             RotationTask rot = FindNearestRotatable();
             if (rot != null)
             {
@@ -44,7 +39,6 @@ public class PlayerCarry : MonoBehaviour
                 return;
             }
 
-            // A device to switch off (Task 5)?
             SequenceDevice dev = FindNearestDevice();
             if (dev != null)
             {

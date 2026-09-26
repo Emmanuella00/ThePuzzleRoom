@@ -1,9 +1,8 @@
 using UnityEngine;
 
-// Put this on any object the player can pick up with E (e.g. the FlowerPot).
 public class Carryable : MonoBehaviour
 {
-    [HideInInspector] public PlacementTask correctSpot;   // filled in automatically by PlacementTask
+    [HideInInspector] public PlacementTask correctSpot;   
     public bool IsPlaced { get; private set; }
     public bool IsCarried { get; private set; }
 
@@ -19,18 +18,18 @@ public class Carryable : MonoBehaviour
     public void PickUp(Transform holdPoint)
     {
         IsCarried = true;
-        SetColliders(false);                 // so it doesn't bump into the player
+        SetColliders(false);                  
         transform.SetParent(holdPoint);
         transform.localPosition = Vector3.zero;
     }
 
-    // Called when the player presses E again
+    
     public void Drop(Transform player)
     {
         IsCarried = false;
         transform.SetParent(originalParent);
 
-        // Close enough to its ghost? Then it snaps into place and the task completes.
+        
         if (correctSpot != null && correctSpot.TryPlace(this))
         {
             IsPlaced = true;
@@ -38,7 +37,7 @@ public class Carryable : MonoBehaviour
             return;
         }
 
-        // Otherwise put it down in front of the player, on whatever surface is below
+        
         Vector3 p = player.position + player.forward * 0.9f;
         if (Physics.Raycast(p + Vector3.up * 2f, Vector3.down, out RaycastHit hit, 5f, ~0, QueryTriggerInteraction.Ignore))
             p.y = hit.point.y;

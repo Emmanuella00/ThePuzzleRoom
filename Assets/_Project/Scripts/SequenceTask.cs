@@ -1,11 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-// Puzzle type: "Follow a sequence of steps to achieve a communicated task".
-// Task 5 - the checkout routine. Put this on an empty object ("CheckoutRoutine").
-// After tasks 1-4 are done, ONLY the next step glows (that's the clue).
-// Press E on the glowing object -> it does its action -> the next one starts glowing.
-// Objects that are not the current step don't glow and can't be used.
+
 public class SequenceTask : MonoBehaviour
 {
     [Header("Task")]
@@ -21,11 +17,11 @@ public class SequenceTask : MonoBehaviour
     public bool IsActive { get; private set; }
     public bool IsSolved { get; private set; }
 
-    // Only the glowing step can be used
+   
     public bool IsCurrentStep(SequenceDevice d) =>
         IsActive && !IsSolved && current < stepsInOrder.Length && stepsInOrder[current] == d;
 
-    private int current;          // index of the step that is glowing now
+    private int current;          
     private PuzzleManager pm;
 
     void Start()
@@ -33,7 +29,7 @@ public class SequenceTask : MonoBehaviour
         pm = PuzzleManager.Instance;
         foreach (SequenceDevice d in stepsInOrder) d.sequence = this;
 
-        // Event-based: react whenever another task is completed
+        
         pm.OnTaskCompleted += HandleTaskCompleted;
         CheckActivation();
     }
@@ -56,16 +52,16 @@ public class SequenceTask : MonoBehaviour
 
         IsActive = true;
         current = 0;
-        stepsInOrder[0].SetGlowing(true);    // the first step starts glowing
+        stepsInOrder[0].SetGlowing(true);    
     }
 
     public void OnDevicePressed(SequenceDevice device)
     {
         if (IsSolved || device.Done) return;
 
-        if (!IsCurrentStep(device)) return;   // not glowing = not usable yet
+        if (!IsCurrentStep(device)) return;   
 
-        // Correct step
+        
         device.Activate();
         pm.PlaySound(device.pressSound);
         current++;
@@ -73,7 +69,7 @@ public class SequenceTask : MonoBehaviour
         if (current >= stepsInOrder.Length)
             StartCoroutine(Solve());
         else
-            stepsInOrder[current].SetGlowing(true);   // next step glows
+            stepsInOrder[current].SetGlowing(true);   
     }
 
     IEnumerator Solve()

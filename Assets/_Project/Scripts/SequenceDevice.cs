@@ -1,8 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-// One step of the checkout routine (Task 5): Curtains, Stereo, TV.
-// Glows when it is the NEXT step. Press E -> it does its action (animate, stop music, switch off).
+
 public class SequenceDevice : MonoBehaviour
 {
     [Tooltip("On-screen control hint, e.g. [E] Open curtains")]
@@ -20,11 +19,11 @@ public class SequenceDevice : MonoBehaviour
     [Header("Action: sound / switch things (optional)")]
     [Tooltip("Music that stops when pressed (the stereo)")]
     public AudioSource stopAudio;
-    public GameObject[] turnOff;    // e.g. the TV screen light
+    public GameObject[] turnOff;    
     public GameObject[] turnOn;
     public AudioClip pressSound;
 
-    [HideInInspector] public SequenceTask sequence;   // filled in by SequenceTask
+    [HideInInspector] public SequenceTask sequence;   
     public bool Done { get; private set; }
 
     private HighlightPulse glow;
@@ -35,7 +34,7 @@ public class SequenceDevice : MonoBehaviour
         if (animateTarget == null) animateTarget = transform;
     }
 
-    // Called by PlayerCarry when the player presses E nearby
+    
     public void Press()
     {
         if (sequence != null) sequence.OnDevicePressed(this);
@@ -44,11 +43,11 @@ public class SequenceDevice : MonoBehaviour
     public void SetGlowing(bool on) { if (glow) glow.SetPulsing(on); }
     public void FlashRed() { if (glow) glow.FlashRed(); }
 
-    // Do this step's action
+    
     public void Activate()
     {
         Done = true;
-        if (glow) glow.MarkSolved();                  // green flash
+        if (glow) glow.MarkSolved();                  
         if (stopAudio) stopAudio.Stop();
         foreach (GameObject g in turnOff) if (g) g.SetActive(false);
         foreach (GameObject g in turnOn) if (g) g.SetActive(true);
